@@ -1,0 +1,38 @@
+# Node.js dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Vite.js build output
+dist/
+
+# Vite cache
+.vite/
+
+# Logs
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+
+# Build outputs
+build/
+
+# Temp files
+*.tmp
+*.swp
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Coverage directory
+coverage/
+
+# Cache
+.cache/
+
