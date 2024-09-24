@@ -1,34 +1,31 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import Routing from '../assest/routes'
+import './index.css';
+
+
 
 function App() {
-  const [count, setCount] = useState(0)
-
+  
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div>
+
+      <div className="max-h-full w-full bg-white-600">
+        
+        <Routing />
+
+
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
+      
+        <footer className='w-full bg-gray-800 text-white text-center p-4'>
         <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
+
+         Multiple Backends: You can set up as many proxies as you need, each pointing to different services (e.g., microservices, static file servers).
+          CORS Issues: By using a proxy, Vite handles CORS issues for you, as requests from the frontend will appear to come from the same origin as the Vite dev server.
+          Serving Files: If you're using the /uploads proxy for serving images, make sure your backend serves the files correctly (as mentioned in previous answers).
+          By setting up multiple proxies in Vite's configuration, you can easily route requests to different backends during development without worrying about CORS or other network-related issues.
         </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+          </footer>
+    </div>
   )
 }
 
