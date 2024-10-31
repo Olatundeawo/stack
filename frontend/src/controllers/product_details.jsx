@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -8,20 +8,34 @@ const ProductDetail = () => {
   const [products, setProducts] = useState(null);
   const [activeImage, setActiveImage] = useState(null); // State to store the active image
   const navigate = useNavigate()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   const handleClick = (id) => {
     navigate(`/product/${id}/update`)
   }
 
+  const handleDeleteClick = (id) => {
+    if (confirm('Are you sure You want to delete this item?'))
+    {
+
+      navigate(`/product/${id}/delete`)
+    }
+  }
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    setIsAuthenticated(!!token)
+  }, []);
+
   useEffect(() => {
     axios.get(`/api/product/${id}`).then((response) => {
       const productData = response.data;
       setProducts(productData);
-      console.log(response)
+      console.log(response.data)
 
       // Set the first image as the active image by default
       if (productData.length > 0 && productData[0].images && productData[0].images.length > 0) {
-        setActiveImage(productData[0].images[0]);
+        setActiveImage(productData[0].images[0].image_path);
       }
     });
   }, [id]);
@@ -54,10 +68,10 @@ const ProductDetail = () => {
                 ? product.images.map((image, index) => (
                     <img
                       key={index}
-                      src={`/images/${image}`}
+                      src={`/images/${image.image_path}`}
                       alt={`Thumbnail ${index + 1}`}
                       className={`w-20 h-20 object-cover border border-gray-300 rounded-lg cursor-pointer ${activeImage === image ? 'border-blue-500' : ''}`} // Add border to the active thumbnail
-                      onClick={() => setActiveImage(image)} // Set the clicked thumbnail as the active image
+                      onClick={() => setActiveImage(image.image_path)} // Set the clicked thumbnail as the active image
                     />
                   ))
                 : null}
@@ -69,7 +83,7 @@ const ProductDetail = () => {
             <h1 className="text-3xl font-bold text-gray-800">{product.name}</h1>
 
             {/* Price */}
-            <div className="text-2xl font-bold text-green-500 mt-4">N{product.price}</div>
+            <div className="text-2xl font-bold text-green-500 mt-4">₦{product.price}</div>
 
             {/* Description */}
             <div className="mt-6">
@@ -90,10 +104,18 @@ const ProductDetail = () => {
               <button className="bg-purple-600 text-white px-6 py-3 rounded-md hover:bg-purple-700">
                 Add to Cart
               </button>
+              {isAuthenticated && (
+                <>
               <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700"
               onClick={() => handleClick(product.product_id)}>
                 Edit
               </button>
+              <button className="bg-red-300 text-white px-6 py-3 rounded-md hover:bg-red-700"
+              onClick={() => handleDeleteClick(product.product_id)}>
+                Delete
+              </button>
+                </>
+              )}
             </div>
           </div>
         </div>

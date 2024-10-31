@@ -1,19 +1,32 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const ProductUpdate = () => {
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState({
+    name: '',
+    description: '',
+    price: '',
+    images: []
+  });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [previewImages, setPreviewImages] = useState([]);
   const [loading, setLoading] = useState(false); // Track form submission state
+  const [hover, setHover] = useState(null);
+  const [image, setImage] = useState([]);
+  
   const { id } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`/api/product/${id}`);
         setProduct(response.data);
+        let image = response.data[0].images
+        setImage(image)
+        
       } catch (error) {
         console.error("Error fetching product", error);
         alert("Error fetching product details");
@@ -21,6 +34,51 @@ const ProductUpdate = () => {
     };
     fetchProduct();
   }, [id]);
+
+
+  // Handle mouse over on the existing pic
+  const handleMouseOver = (index) => {
+    setHover(index);
+  }
+
+  // Handle mouse out on the existing pic
+  const handleMouseOut = () => setHover(null);
+  
+  // Delete a particular image when you mouse over
+  const handleImageDelete = async (id, imageId) => {
+    if (confirm('Are you sure You want to delete this item?'))
+      {
+  
+        try {
+          const token = localStorage.getItem('token');
+          await axios.delete(`/api/product/${id}/image/${imageId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          });
+        } catch (err) {
+          console.error("Error updating the product", err);
+          alert("Error updating product");
+        } 
+        const updatedImage = image.filter((image) => image.id !== imageId);
+        setImage(updatedImage);
+      }
+  }
+
+ 
+
+ 
+
+  const handleProductChange = (e, index, field) => {
+    const updatedProducts = [...product];
+    updatedProducts[index] = {
+      ...updatedProducts[index],
+      [field]: e.target.value
+    };
+    setProduct(updatedProducts);
+  };
+
 
   // Handle file input change
   const handleFileChange = (e) => {
@@ -51,12 +109,15 @@ const ProductUpdate = () => {
 
     // Update the product details and images
     try {
+      let token = localStorage.getItem('token')
       await axios.put(`/api/product/${id}/update`, formData, {
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
       alert("Product updated successfully");
+      navigate('/')
     } catch (err) {
       console.error("Error updating the product", err);
       alert("Error updating product");
@@ -74,34 +135,33 @@ const ProductUpdate = () => {
       <h1 className="text-2xl font-bold mb-4">Update Product</h1>
 
       <form onSubmit={handleSubmit}>
-        {/* Product Name */}
+        {Array.isArray(product) && product.map((product, index) => (
+          <div key={product.product_id}>
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2">Name</label>
           <input
             type="text"
-            value={product[0].name}
-            onChange={(e) =>
-              setProduct({ ...product, name: e.target.value })
-            }
+            value={product.name || ''}
+            onChange={(e) => handleProductChange(e, index, 'name')}
             className="border border-gray-300 p-2 w-full"
             required
+            
             />
             
         </div>
-
-        {/* Product Description */}
+           
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2">
             Description
           </label>
           <textarea
-            value={product[0].description}
-            onChange={(e) =>
-              setProduct({ ...product, description: e.target.value })
-            }
+            value={product.description}
+            onChange={(e) => handleProductChange(e, index, 'description')}
             className="border border-gray-300 p-2 w-full"
             required
           />
+           
+
         </div>
 
         {/* Product Price */}
@@ -109,14 +169,12 @@ const ProductUpdate = () => {
           <label className="block text-gray-700 font-bold mb-2">Price</label>
           <input
             type="number"
-            value={product[0].price}
-            onChange={(e) =>
-              setProduct({ ...product, price: e.target.value })
-            }
+            value={product.price}
+            onChange={(e) => handleProductChange(e, index, 'price')}
             className="border border-gray-300 p-2 w-full"
             required
             />
-            {console.log(product[0].images)}
+            
         </div>
             
         {/* Display Existing Product Images */}
@@ -124,19 +182,35 @@ const ProductUpdate = () => {
           <label className="block text-gray-700 font-bold mb-2">
             Existing Images
           </label>
-          <div className="flex space-x-2">
-            {product[0].images && product[0].images.length > 0 ? (
-              product[0].images.map((image, index) => (
-                <img
-                  key={index}
-                  src={`/images/${image}`}
-                  alt={`Product Image ${index + 1}`}
-                  className="w-32 h-32 object-cover"
-                />
+          
+          <div className="flex space-x-2 relative inline-block">
+            {image && image.length > 0 ? (
+              image.map((image, index) => (     
+                <div className="relative" key={image.id}
+                onMouseOver={() => handleMouseOver(index)}
+                onMouseOut={handleMouseOut}
+                >
+                  <img
+                    key={index}
+                    src={`/images/${image.image_path}`}
+                    alt={`Product Image ${index + 1}`}
+                    className="w-32 h-32 object-cover"
+                    />
+                {hover === index && (
+                  <p  className="absolute top-2 right-2 bg-red-500 text-white p-1"
+                  onClick={() => handleImageDelete(product.product_id, image.id)}
+                  style={{ cursor: 'pointer' }} >
+                    X
+                  </p>
+                )}
+                {/* {console.log(image)} */}
+                </div>
               ))
-            ) : (
-              <p>No images available</p>
+                
+                ) : (
+                <p>No images available</p>
             )}
+            
           </div>
         </div>
 
@@ -176,6 +250,9 @@ const ProductUpdate = () => {
             {loading ? "Updating..." : "Update Product"}
           </button>
         </div>
+          </div>
+        
+        ))}
       </form>
     </div>
   );
